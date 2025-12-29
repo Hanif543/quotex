@@ -1,180 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Trading Terminal | All Markets</title>
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <style>
-        :root { --bg: #0b0e11; --panel: #151921; --green: #00c896; --red: #ff3b57; --accent: #58a6ff; --text: #e1e1e1; --card: #1c212d; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
-        
-        /* Navbar */
-        .navbar { background: var(--panel); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #2b2f3a; }
-        .logo { font-weight: 800; font-size: 20px; color: var(--accent); }
-        .balance-chip { background: rgba(0, 200, 150, 0.1); border: 1px solid var(--green); padding: 5px 15px; border-radius: 4px; color: var(--green); font-weight: bold; }
-
-        /* Main View */
-        .main-layout { display: flex; height: calc(100vh - 60px); }
-        #chart-viewport { flex: 1; }
-
-        /* Right Sidebar */
-        .sidebar { width: 320px; background: var(--panel); border-left: 1px solid #2b2f3a; padding: 15px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
-        
-        /* Wizard AI Box */
-        .wizard-box { background: var(--card); border-radius: 8px; border: 1px solid #363c4e; padding: 15px; }
-        .wizard-header { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 15px; }
-        
-        /* Analysis Output (Photos Style) */
-        #ai-report { display: none; background: #ffffff; color: #1a1a1a; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 13px; line-height: 1.5; }
-        .report-section { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .recom-box { background: #fff9db; border-left: 4px solid #fab005; padding: 10px; margin: 10px 0; font-weight: bold; }
-        .tp-sl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .tp-box { background: #e6ffec; color: #238636; padding: 8px; border-radius: 4px; text-align: center; font-weight: bold; }
-        .sl-box { background: #ffebe9; color: #cf222e; padding: 8px; border-radius: 4px; text-align: center; font-weight: bold; }
-
-        /* Inputs & Buttons */
-        select, input { width: 100%; background: #1c212d; border: 1px solid #363c4e; color: white; padding: 10px; border-radius: 4px; margin-top: 5px; }
-        .btn-trade { border: none; padding: 15px; border-radius: 6px; font-weight: bold; font-size: 16px; color: white; cursor: pointer; transition: 0.2s; }
-        .up-btn { background: var(--green); margin-bottom: 10px; }
-        .down-btn { background: var(--red); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotex Demo Terminal</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <nav class="navbar">
-        <div class="logo">WIZARD TERMINAL</div>
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <select id="masterPair" onchange="switchMarket(this.value)" style="width: 180px; margin: 0;">
-                <optgroup label="Popular Currencies">
-                    <option value="FX:EURUSD">EUR / USD</option>
-                    <option value="FX:GBPUSD">GBP / USD</option>
-                    <option value="FX:USDJPY">USD / JPY</option>
-                    <option value="FX:AUDUSD">AUD / USD</option>
-                    <option value="FX:USDCAD">USD / CAD</option>
-                    <option value="FX:USDCHF">USD / CHF</option>
-                </optgroup>
-                <optgroup label="OTC Markets">
-                    <option value="OANDA:EURGBP">EUR / GBP (OTC)</option>
-                    <option value="OANDA:NZDUSD">NZD / USD (OTC)</option>
-                    <option value="OANDA:AUDJPY">AUD / JPY (OTC)</option>
-                </optgroup>
-                <optgroup label="Metals & Crypto">
-                    <option value="OANDA:XAUUSD">GOLD (XAU/USD)</option>
-                    <option value="BINANCE:BTCUSDT">BITCOIN (BTC)</option>
-                    <option value="BINANCE:ETHUSDT">ETHEREUM (ETH)</option>
-                </optgroup>
-            </select>
-            <div class="balance-chip">Demo: $<span id="bal-val">10000.00</span></div>
-        </div>
-    </nav>
+<div class="app">
 
-    <div class="main-layout">
-        <div id="chart-viewport"></div>
+  <h1>⚡ Quotex Demo Terminal</h1>
 
-        <aside class="sidebar">
-            <div class="wizard-box">
-                <div class="wizard-header">🔮 Forex Wizard AI Analysis</div>
-                <p style="font-size: 12px; color: #848e9c; margin: 0;">Select Timeframe:</p>
-                <select id="tf-select">
-                    <option value="1">1 Minute (Scalping)</option>
-                    <option value="5">5 Minutes (Intraday)</option>
-                    <option value="15">15 Minutes (Short Trend)</option>
-                </select>
-                <button onclick="generateReport()" id="runBtn" style="width: 100%; background: var(--accent); color: white; border: none; padding: 10px; border-radius: 4px; margin-top: 10px; font-weight: bold; cursor: pointer;">RUN AI REPORT</button>
-                
-                <div id="ai-report">
-                    <div id="loader">Processing Candles...</div>
-                    <div id="report-content" style="display:none;">
-                        <h4 style="margin:0 0 10px 0; color:#000;">Wizard Analysis Report</h4>
-                        <div class="report-section"><strong>1. Trend Observation:</strong> <span id="r-trend"></span></div>
-                        <div class="report-section"><strong>2. Candlestick Pattern:</strong> <span id="r-candle"></span></div>
-                        <div class="report-section"><strong>3. Support & Resistance:</strong><br> - Res: <span id="r-res"></span><br> - Sup: <span id="r-sup"></span></div>
-                        <div class="recom-box">Recommendation: <span id="r-recom"></span></div>
-                        <div class="tp-sl-grid">
-                            <div class="tp-box">TP: <span id="r-tp"></span></div>
-                            <div class="sl-box">SL: <span id="r-sl"></span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <div class="top">
+    <select id="asset">
+      <option value="BTCUSDT">BTC / USDT</option>
+      <option value="ETHUSDT">ETH / USDT</option>
+    </select>
 
-            <div style="margin-top: auto;">
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size: 12px; color: #848e9c;">Investment Amount:</label>
-                    <input type="number" id="trade-amt" value="100">
-                </div>
-                <button class="btn-trade up-btn" onclick="placeTrade('UP')">HIGHER ↑</button>
-                <button class="btn-trade down-btn" onclick="placeTrade('DOWN')">LOWER ↓</button>
-            </div>
-        </aside>
-    </div>
+    <select id="timeframe">
+      <option>5s</option>
+      <option>15s</option>
+      <option>1m</option>
+    </select>
+  </div>
 
-    <script>
-        let balance = 10000;
-        let activePair = "FX:EURUSD";
+  <div class="price">
+    Price: <span id="price">Loading...</span>
+  </div>
 
-        function initChart(pair) {
-            new TradingView.widget({
-                "autosize": true, "symbol": pair, "interval": "1",
-                "timezone": "Etc/UTC", "theme": "dark", "style": "1",
-                "locale": "en", "container_id": "chart-viewport",
-                "hide_side_toolbar": false, "allow_symbol_change": true,
-                "studies": ["PivotPointsHighLow@tv-basicstudies", "RSI@tv-basicstudies"]
-            });
-        }
+  <div class="balance">
+    Demo Balance: $<span id="balance">10000</span>
+  </div>
 
-        function switchMarket(val) {
-            activePair = val;
-            initChart(val);
-            document.getElementById('ai-report').style.display = "none";
-        }
+  <div class="buttons">
+    <button class="call" onclick="trade('CALL')">CALL</button>
+    <button class="put" onclick="trade('PUT')">PUT</button>
+  </div>
 
-        function generateReport() {
-            const reportBox = document.getElementById('ai-report');
-            const loader = document.getElementById('loader');
-            const content = document.getElementById('report-content');
-            
-            reportBox.style.display = "block";
-            loader.style.display = "block";
-            content.style.display = "none";
+  <div class="analysis">
+    <h3>📊 AI Analysis</h3>
+    <p id="analysisText">Waiting for market data...</p>
+  </div>
 
-            setTimeout(() => {
-                loader.style.display = "none";
-                content.style.display = "block";
+</div>
 
-                const isBuy = Math.random() > 0.5;
-                let base = activePair.includes("BTC") ? 98500 : (activePair.includes("XAU") ? 2650 : 1.0820);
-                
-                document.getElementById('r-trend').innerText = isBuy ? "Strong upward bullish momentum." : "Bearish trend confirmed by price action.";
-                document.getElementById('r-candle').innerText = isBuy ? "Formation of long bullish candles." : "Engulfing bearish pattern detected.";
-                document.getElementById('r-res').innerText = (base + 0.0050).toFixed(4);
-                document.getElementById('r-sup').innerText = (base - 0.0030).toFixed(4);
-                document.getElementById('r-recom').innerText = isBuy ? "Ready for a BUY entry. High probability." : "Look for a SELL entry. Resistance rejection.";
-                document.getElementById('r-tp').innerText = (isBuy ? base + 0.0080 : base - 0.0080).toFixed(4);
-                document.getElementById('r-sl').innerText = (isBuy ? base - 0.0040 : base + 0.0040).toFixed(4);
-                
-                reportBox.scrollIntoView({ behavior: 'smooth' });
-            }, 1500);
-        }
-
-        function placeTrade(type) {
-            let amt = parseFloat(document.getElementById('trade-amt').value);
-            if(amt > balance) return alert("Low Demo Balance!");
-            balance -= amt;
-            updateUI();
-            setTimeout(() => {
-                let win = Math.random() > 0.5;
-                if(win) balance += (amt * 1.85);
-                updateUI();
-            }, 3000);
-        }
-
-        function updateUI() {
-            document.getElementById('bal-val').innerText = balance.toFixed(2);
-        }
-
-        window.onload = () => initChart(activePair);
-    </script>
+<script src="app.js"></script>
 </body>
 </html>
